@@ -1,0 +1,55 @@
+package com.studygroup.studygroup.domain;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Getter @Setter @EqualsAndHashCode(of = "id")
+@Builder @AllArgsConstructor
+@NoArgsConstructor
+public class Account {
+
+    @Id @GeneratedValue
+    private Long id;
+
+    @Column(unique = true)
+    private String email;
+
+    @Column(unique = true)
+    private String nickname;
+
+    private String password;
+
+    private boolean emailVerified;
+
+    private String emailCheckToken; //이메일 검증 시 사용할 토큰 값
+
+    private LocalDateTime joinedAt;
+
+    private String bio;
+
+    private String url;
+
+    private String occupation;
+
+    private String location; //varchar(255)
+
+    @Lob @Basic(fetch = FetchType.EAGER) //@Lob 필드는 기본적으로 FetchType.LAZY
+    private String profileImage; //String 이므로 CLOB
+
+    /* 알림 */
+    private boolean studyCreatedByEmail;
+
+    private boolean studyCreatedByWeb;
+
+    private boolean studyEnrollmentResultByEmail;
+
+    private boolean studyEnrollmentResultByWeb;
+
+    private boolean studyUpdatedByEmail;
+
+    private boolean studyUpdatedByWeb;
+
+}
