@@ -1,13 +1,22 @@
 package com.studygroup.studygroup.account;
 
 import com.studygroup.studygroup.domain.Account;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -19,10 +28,11 @@ public class AccountService {
     private final JavaMailSender javaMailSender;
     private final PasswordEncoder passwordEncoder;
 
-    public void processNewAccount(SignUpForm signUpForm) {
+    public Account processNewAccount(SignUpForm signUpForm) {
         Account newAccount = saveNewAccount(signUpForm);
         newAccount.generateEmailCheckToken();
         sendSignUpConfirmEmail(newAccount);
+        return newAccount;
     }
 
     private Account saveNewAccount(SignUpForm signUpForm) {
@@ -44,5 +54,16 @@ public class AccountService {
         mailMessage.setSubject("스터디올래, 회원 가입 인증");
         mailMessage.setText("/check-email-token?token=" + newAccount.getEmailCheckToken() + "&email=" + newAccount.getEmail());
         javaMailSender.send(mailMessage);
+    }
+
+    public void login(Account account) {
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                account.getNickname(),
+                account.getPassword(),
+                List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        // HttpSession에 SecurityContext를 저장하여 이후 요청에서도 인증 상태가 유지되도록 함
+        ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest()
+                .getSession().setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
     }
 }
