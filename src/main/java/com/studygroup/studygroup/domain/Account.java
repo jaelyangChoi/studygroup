@@ -7,12 +7,16 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Getter @Setter @EqualsAndHashCode(of = "id")
-@Builder @AllArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 public class Account {
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long id;
 
     @Column(unique = true)
@@ -37,7 +41,8 @@ public class Account {
 
     private String location; //varchar(255)
 
-    @Lob @Basic(fetch = FetchType.EAGER) //@Lob 필드는 기본적으로 FetchType.LAZY
+    @Lob
+    @Basic(fetch = FetchType.EAGER) //@Lob 필드는 기본적으로 FetchType.LAZY
     private String profileImage; //String 이므로 CLOB
 
     /* 알림 */
@@ -55,5 +60,10 @@ public class Account {
 
     public void generateEmailCheckToken() {
         this.emailCheckToken = UUID.randomUUID().toString();
+    }
+
+    public void completeSignUp() {
+        emailVerified = true;
+        joinedAt = LocalDateTime.now();
     }
 }
