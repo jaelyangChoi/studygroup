@@ -1,4 +1,4 @@
-package com.studygroup.studygroup;
+package com.studygroup.studygroup.mail;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
