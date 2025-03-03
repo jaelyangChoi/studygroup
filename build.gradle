@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.2'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.github.node-gradle.node' version '3.5.1'
 }
 
 group = 'com.studygroup'
@@ -43,6 +44,26 @@ dependencies {
 	//test lombok 사용
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+node {
+	version = "18.16.0" // 사용할 Node.js 버전
+	npmVersion = "9.5.1" // 사용할 npm 버전
+	download = true // Node.js를 자동 다운로드
+	workDir = file("${project.buildDir}/node") // Node 저장 경로
+	npmWorkDir = file("${project.buildDir}/npm") // npm 저장 경로
+	nodeProjectDir = file("${project.projectDir}/src/main/resources/static") // 프론트엔드 폴더
+}
+
+// Node.js 및 npm 설치 태스크 (이미 존재하는 경우 다시 정의하지 않음)
+tasks.named("npmInstall") {
+	dependsOn("nodeSetup")
+	workingDir.set(file("${project.projectDir}/src/main/resources/static"))
+}
+
+// 빌드 시 npm install 실행하도록 설정
+tasks.named("processResources") {
+	dependsOn("npmInstall")
 }
 
 tasks.named('test') {
