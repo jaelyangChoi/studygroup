@@ -66,4 +66,27 @@ public class AccountController {
         return view;
     }
 
+    /**
+     * 가입 확인 이메일을 전송한 이메일 주소 (== 가입할 때 입력한 이메일 주소)를 화면에 보여 줌
+     * 재전송 버튼 노출
+     */
+    @GetMapping("/check-email")
+    public String checkEmail(@CurrentUser Account account, Model model) {
+        model.addAttribute("email", account.getEmail());
+        return "account/check-email";
+    }
+
+    /**
+     *
+     */
+    @GetMapping("/resend-confirm-email")
+    public String resendConfirmEmail(@CurrentUser Account account, Model model) {
+        if (!account.canSendConfirmEmail()) {
+            accountService.sendSignUpConfirmEmail(account);
+            model.addAttribute("error", "이메일은 한 시간에 한 번만 보낼 수 있습니다.");
+            model.addAttribute("email", account.getEmail());
+            return "account/check-email";
+        }
+        return "redirect:/";
+    }
 }
