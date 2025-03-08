@@ -59,6 +59,11 @@ public class AccountService implements UserDetailsService {
         newAccount.updateConfirmEmailLastSendTime();
     }
 
+    public void completeSignUp(Account account) {
+        account.completeSignUp();
+        login(account);
+    }
+
     public void login(Account account) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 new UserAccount(account),
@@ -70,6 +75,7 @@ public class AccountService implements UserDetailsService {
                 .getSession().setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public UserDetails loadUserByUsername(String emailOrNickname) throws UsernameNotFoundException {
 

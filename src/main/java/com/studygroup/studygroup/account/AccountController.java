@@ -3,14 +3,14 @@ package com.studygroup.studygroup.account;
 import com.studygroup.studygroup.domain.Account;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class AccountController {
@@ -44,7 +44,7 @@ public class AccountController {
     }
 
     @GetMapping("/check-email-token")
-    public String checkEmailToken(String token, String email, Model model) {
+    public String checkEmailToken(@RequestParam("token") String token, @RequestParam("email") String email, Model model) {
         Account account = accountRepository.findByEmail(email);
         String view = "account/checked-email";
         if (account == null) {
@@ -55,9 +55,8 @@ public class AccountController {
             model.addAttribute("error", "wrong.token");
             return view;
         }
-
-        account.completeSignUp();
-        accountService.login(account);
+        accountService.completeSignUp(account);
+        log.info("account.isEmailVerified={}", account.isEmailVerified());
         model.addAttribute("numberOfUser", accountRepository.count());
         model.addAttribute("nickname", account.getNickname());
         return view;
@@ -74,7 +73,7 @@ public class AccountController {
     }
 
     /**
-     *
+     * 가입 이메일 재전송
      */
     @GetMapping("/resend-confirm-email")
     public String resendConfirmEmail(@CurrentUser Account account, Model model) {
@@ -86,4 +85,20 @@ public class AccountController {
         }
         return "redirect:/";
     }
+
+    /**
+     * 프로필 뷰
+     * 본인 프로필만 수정 가능
+     */
+    @GetMapping("/profile/{nickname}")
+    public String viewProfile(@PathVariable("nickname") String nickname, Model model, @CurrentUser Account account) {
+        Account byNickname = accountRepository.findByNickname(nickname);
+        if (byNickname == null)
+            throw new IllegalArgumentException(nickname + "에 해당하는 사용자가 없습니다.");
+
+        model.addAttribute(byNickname); //객체 이름을 생략하면 기본값으로 타입이 들어감 "account"
+        model.addAttribute("isOwner", byNickname.equals(account));
+        return "account/profile";
+    }
+
 }
