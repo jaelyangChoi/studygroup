@@ -1,6 +1,7 @@
 package com.studygroup.studygroup.account;
 
 import com.studygroup.studygroup.domain.Account;
+import com.studygroup.studygroup.settings.Profile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
@@ -87,5 +88,16 @@ public class AccountService implements UserDetailsService {
             throw new UsernameNotFoundException(emailOrNickname);
 
         return new UserAccount(account);
+    }
+
+    public void updateProfile(Account account, Profile profile) {
+        account.setUrl(profile.getUrl());
+        account.setOccupation(profile.getOccupation());
+        account.setLocation(profile.getLocation());
+        account.setBio(profile.getBio());
+        // TODO 프로필 이미지
+        accountRepository.save(account); //id가 있는 detached 상태면 merge 시킨다.
+
+        // TODO 문제가 하나 더 남아있다.
     }
 }
