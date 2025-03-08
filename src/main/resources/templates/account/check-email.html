@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en">
-<head th:replace="fragments.html :: head"></head>
+<head th:replace="~{fragments.html :: head}"></head>
 <body class="bg-light">
-    <nav th:replace="fragments.html :: main-nav"></nav>
+    <nav th:replace="~{fragments.html :: main-nav}"></nav>
 
     <div class="container">
         <div class="py-5 text-center" th:if="${error!=null}">
@@ -12,7 +12,7 @@
         </div>
 
 
-        <div class="py-5 text-center" th:if="${error} is null">
+        <div class="py-5 text-center" th:if="${error == null}">
             <p class="lead">스터디올래 가입</p>
             <h2>스터디올래 서비스를 이용하려면 인증 이메일을 확인하세요.</h2>
             <div>
@@ -21,5 +21,6 @@
             </div>
         </div>
     </div>
+    <div th:replace="~{fragments.html :: footer}"></div>
 </body>
 </html>
