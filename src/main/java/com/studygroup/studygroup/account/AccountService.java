@@ -1,7 +1,6 @@
 package com.studygroup.studygroup.account;
 
 import com.studygroup.studygroup.domain.Account;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
@@ -9,13 +8,15 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,7 +24,7 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class AccountService {
+public class AccountService implements UserDetailsService {
 
     private final AccountRepository accountRepository;
     private final JavaMailSender javaMailSender;
@@ -67,5 +68,18 @@ public class AccountService {
         // HttpSession에 SecurityContext를 저장하여 이후 요청에서도 인증 상태가 유지되도록 함
         ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest()
                 .getSession().setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String emailOrNickname) throws UsernameNotFoundException {
+
+        Account account = accountRepository.findByEmail(emailOrNickname);
+        if (account == null)
+            account = accountRepository.findByNickname(emailOrNickname);
+
+        if (account == null)
+            throw new UsernameNotFoundException(emailOrNickname);
+
+        return new UserAccount(account);
     }
 }
