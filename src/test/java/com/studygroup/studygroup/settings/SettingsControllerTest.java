@@ -21,7 +21,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
 class SettingsControllerTest {
@@ -59,14 +58,9 @@ class SettingsControllerTest {
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(SettingsController.SETTINGS_PROFILE_URL))
-                .andExpect(flash().attributeExists("message"))
-        ;
-
+                .andExpect(flash().attributeExists("message"));
 
         Account account = accountRepository.findByNickname("cjl0701");
         assertEquals(bio, account.getBio());
-
     }
-
-
 }
