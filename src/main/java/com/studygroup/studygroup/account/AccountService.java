@@ -4,6 +4,7 @@ import com.studygroup.studygroup.domain.Account;
 import com.studygroup.studygroup.settings.Profile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -91,11 +92,18 @@ public class AccountService implements UserDetailsService {
     }
 
     public void updateProfile(Account account, Profile profile) {
-        account.setUrl(profile.getUrl());
-        account.setOccupation(profile.getOccupation());
-        account.setLocation(profile.getLocation());
-        account.setBio(profile.getBio());
-        account.setProfileImage(profile.getProfileImage());
-        accountRepository.save(account); //id가 있는 detached 상태면 merge 시킨다.
+        Account accountPS = accountRepository.findByEmail(account.getEmail()); //dirty check가 안전
+        accountPS.setUrl(profile.getUrl());
+        accountPS.setOccupation(profile.getOccupation());
+        accountPS.setLocation(profile.getLocation());
+        accountPS.setBio(profile.getBio());
+        accountPS.setProfileImage(profile.getProfileImage());
+//        accountRepository.save(account); //id가 있는 detached 상태면 merge 시킨다.
+    }
+
+    public void updatePassword(Account account, String newPassword) {
+        Account accountPS = accountRepository.findByEmail(account.getEmail()); //dirty check가 안전
+        accountPS.setPassword(passwordEncoder.encode(newPassword));
+//        accountRepository.save(account); //merge -> DB에서 엔티티 조회 후 detached entity의 필드 값 복사
     }
 }
