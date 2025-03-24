@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.Length;
+import org.modelmapper.ModelMapper;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,6 +37,7 @@ public class AccountService implements UserDetailsService {
     private final AccountRepository accountRepository;
     private final JavaMailSender javaMailSender;
     private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
     public Account processNewAccount(SignUpForm signUpForm) {
         Account newAccount = saveNewAccount(signUpForm);
@@ -100,28 +102,24 @@ public class AccountService implements UserDetailsService {
 
     public void updateProfile(Account account, Profile profile) {
         Account accountPS = accountRepository.findByEmail(account.getEmail()); //dirty check가 안전
-        accountPS.setUrl(profile.getUrl());
-        accountPS.setOccupation(profile.getOccupation());
-        accountPS.setLocation(profile.getLocation());
-        accountPS.setBio(profile.getBio());
-        accountPS.setProfileImage(profile.getProfileImage());
-//        accountRepository.save(account); //id가 있는 detached 상태면 merge 시킨다.
+        modelMapper.map(profile, accountPS);
+//        accountRepository.save(account); //id가 있는 detached 상태면 merge 시킨다. /merge -> DB에서 엔티티 조회 후 detached entity의 필드 값 복사
+
+        //Authentication 과 세션에 변경 사항을 재반영
+        login(accountPS);
     }
 
     public void updatePassword(Account account, String newPassword) {
         Account accountPS = accountRepository.findByEmail(account.getEmail()); //dirty check가 안전
         accountPS.setPassword(passwordEncoder.encode(newPassword));
-//        accountRepository.save(account); //merge -> DB에서 엔티티 조회 후 detached entity의 필드 값 복사
+
+        //Authentication 과 세션에 변경 사항을 재반영
+        login(accountPS);
     }
 
     public void updateNotifications(Account account, @Valid Notifications notifications) {
         Account accountPS = accountRepository.findByEmail(account.getEmail());
-        accountPS.setStudyCreatedByWeb(notifications.isStudyCreatedByWeb());
-        accountPS.setStudyCreatedByEmail(notifications.isStudyCreatedByEmail());
-        accountPS.setStudyUpdatedByWeb(notifications.isStudyUpdatedByWeb());
-        accountPS.setStudyUpdatedByEmail(notifications.isStudyUpdatedByEmail());
-        accountPS.setStudyEnrollmentResultByEmail(notifications.isStudyEnrollmentResultByEmail());
-        accountPS.setStudyEnrollmentResultByWeb(notifications.isStudyEnrollmentResultByWeb());
+        modelMapper.map(notifications, accountPS);
 
         //Authentication 과 세션에 변경 사항을 재반영
         login(accountPS);
