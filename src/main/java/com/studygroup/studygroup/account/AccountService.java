@@ -1,19 +1,24 @@
 package com.studygroup.studygroup.account;
 
 import com.studygroup.studygroup.domain.Account;
+import com.studygroup.studygroup.settings.Notifications;
 import com.studygroup.studygroup.settings.Profile;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -72,9 +77,11 @@ public class AccountService implements UserDetailsService {
                 account.getPassword(),
                 List.of(new SimpleGrantedAuthority("ROLE_USER")));
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
         // HttpSession에 SecurityContext를 저장하여 이후 요청에서도 인증 상태가 유지되도록 함
-        ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest()
-                .getSession().setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+        HttpSession session = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest()
+                .getSession();
+        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
     }
 
     @Transactional(readOnly = true)
@@ -106,4 +113,18 @@ public class AccountService implements UserDetailsService {
         accountPS.setPassword(passwordEncoder.encode(newPassword));
 //        accountRepository.save(account); //merge -> DB에서 엔티티 조회 후 detached entity의 필드 값 복사
     }
+
+    public void updateNotifications(Account account, @Valid Notifications notifications) {
+        Account accountPS = accountRepository.findByEmail(account.getEmail());
+        accountPS.setStudyCreatedByWeb(notifications.isStudyCreatedByWeb());
+        accountPS.setStudyCreatedByEmail(notifications.isStudyCreatedByEmail());
+        accountPS.setStudyUpdatedByWeb(notifications.isStudyUpdatedByWeb());
+        accountPS.setStudyUpdatedByEmail(notifications.isStudyUpdatedByEmail());
+        accountPS.setStudyEnrollmentResultByEmail(notifications.isStudyEnrollmentResultByEmail());
+        accountPS.setStudyEnrollmentResultByWeb(notifications.isStudyEnrollmentResultByWeb());
+
+        //Authentication 과 세션에 변경 사항을 재반영
+        login(accountPS);
+    }
+
 }
