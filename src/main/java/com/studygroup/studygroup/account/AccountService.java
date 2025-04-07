@@ -1,18 +1,15 @@
 package com.studygroup.studygroup.account;
 
 import com.studygroup.studygroup.domain.Account;
-import com.studygroup.studygroup.settings.Notifications;
-import com.studygroup.studygroup.settings.Profile;
+import com.studygroup.studygroup.settings.form.Notifications;
+import com.studygroup.studygroup.settings.form.Profile;
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.validator.constraints.Length;
 import org.modelmapper.ModelMapper;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -117,7 +114,7 @@ public class AccountService implements UserDetailsService {
         login(accountPS);
     }
 
-    public void updateNotifications(Account account, @Valid Notifications notifications) {
+    public void updateNotifications(Account account, Notifications notifications) {
         Account accountPS = accountRepository.findByEmail(account.getEmail());
         modelMapper.map(notifications, accountPS);
 
@@ -125,4 +122,9 @@ public class AccountService implements UserDetailsService {
         login(accountPS);
     }
 
+    public void updateNickname(Account account, String nickname) {
+        Account accountPS = accountRepository.findByEmail(account.getEmail());
+        accountPS.setNickname(nickname);
+        login(accountPS);
+    }
 }
