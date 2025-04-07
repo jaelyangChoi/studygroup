@@ -30,10 +30,12 @@ public class SettingsController {
     static final String SETTINGS_PROFILE_URL = "/" + SETTINGS_PROFILE_VIEW_NAME;
     static final String SETTINGS_PASSWORD_VIEW_NAME = "settings/password";
     static final String SETTINGS_PASSWORD_URL = "/" + SETTINGS_PASSWORD_VIEW_NAME;
-    static final String SETTINGS__NOTIFICATIONS_VIEW_NAME = "settings/notifications";
-    static final String SETTINGS_NOTIFICATIONS_URL = "/" + SETTINGS__NOTIFICATIONS_VIEW_NAME;
-    static final String SETTINGS__ACCOUNT_VIEW_NAME = "settings/account";
-    static final String SETTINGS__ACCOUNT_URL = "/" + SETTINGS__ACCOUNT_VIEW_NAME;
+    static final String SETTINGS_NOTIFICATIONS_VIEW_NAME = "settings/notifications";
+    static final String SETTINGS_NOTIFICATIONS_URL = "/" + SETTINGS_NOTIFICATIONS_VIEW_NAME;
+    static final String SETTINGS_ACCOUNT_VIEW_NAME = "settings/account";
+    static final String SETTINGS_ACCOUNT_URL = "/" + SETTINGS_ACCOUNT_VIEW_NAME;
+    static final String SETTINGS_TAGS_VIEW_NAME = "settings/tags";
+    static final String SETTINGS_TAGS_URL = "/" + SETTINGS_TAGS_VIEW_NAME;
 
     private final AccountService accountService;
     private final AccountRepository accountRepository;
@@ -93,7 +95,7 @@ public class SettingsController {
     public String updateNotificationsForm(@CurrentUser Account account, Model model) {
         model.addAttribute(account);
         model.addAttribute(modelMapper.map(account, Notifications.class));
-        return SETTINGS__NOTIFICATIONS_VIEW_NAME;
+        return SETTINGS_NOTIFICATIONS_VIEW_NAME;
     }
 
     @PostMapping(SETTINGS_NOTIFICATIONS_URL)
@@ -101,7 +103,7 @@ public class SettingsController {
                                       Model model, RedirectAttributes redirectAttributes) {
         if (errors.hasErrors()) {
             model.addAttribute(account);
-            return SETTINGS__NOTIFICATIONS_VIEW_NAME;
+            return SETTINGS_NOTIFICATIONS_VIEW_NAME;
         }
 
         accountService.updateNotifications(account, notifications);
@@ -110,23 +112,29 @@ public class SettingsController {
         return "redirect:" + SETTINGS_NOTIFICATIONS_URL;
     }
 
-    @GetMapping(SETTINGS__ACCOUNT_URL)
+    @GetMapping(SETTINGS_ACCOUNT_URL)
     public String updateAccountForm(@CurrentUser Account account, Model model) {
         model.addAttribute(account);
         model.addAttribute(modelMapper.map(account, NicknameForm.class));
-        return SETTINGS__ACCOUNT_VIEW_NAME;
+        return SETTINGS_ACCOUNT_VIEW_NAME;
     }
 
-    @PostMapping(SETTINGS__ACCOUNT_URL)
+    @PostMapping(SETTINGS_ACCOUNT_URL)
     public String updateAccount(@CurrentUser Account account, @Valid NicknameForm nicknameForm, Errors errors,
                                 Model model, RedirectAttributes redirectAttributes) {
         if (errors.hasErrors()) {
             model.addAttribute(account);
-            return SETTINGS__ACCOUNT_VIEW_NAME;
+            return SETTINGS_ACCOUNT_VIEW_NAME;
         }
 
         accountService.updateNickname(account, nicknameForm.getNickname());
         redirectAttributes.addFlashAttribute("message", "닉네임을 수정했습니다.");
-        return "redirect:" + SETTINGS__ACCOUNT_URL;
+        return "redirect:" + SETTINGS_ACCOUNT_URL;
+    }
+
+    @GetMapping(SETTINGS_TAGS_URL)
+    public String updateTags(@CurrentUser Account account, Model model) {
+        model.addAttribute(account);
+        return SETTINGS_TAGS_VIEW_NAME;
     }
 }
