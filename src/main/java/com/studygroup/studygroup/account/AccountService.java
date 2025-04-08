@@ -145,8 +145,14 @@ public class AccountService implements UserDetailsService {
         byId.ifPresent(ac -> ac.getTags().add(tag));
     }
 
-    public Set<Tag> getTags(Account account) {
-        Account byId = accountRepository.findById(account.getId()).orElseThrow();
-        return byId.getTags();
+    public void removeTag(Account account, Tag tag) {
+        Optional<Account> byId = accountRepository.findById(account.getId());
+        byId.ifPresent(ac -> ac.getTags().remove(tag));
     }
+
+    public Set<Tag> getTags(Account account) {
+        Optional<Account> byId = accountRepository.findById(account.getId());
+        return byId.orElseThrow().getTags();
+    }
+
 }

@@ -20,6 +20,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.swing.text.html.Option;
 import java.util.Optional;
 import java.util.Set;
 
@@ -153,6 +154,18 @@ public class SettingsController {
                 tagRepository.save(Tag.builder().title(tagTitle).build()));
 
         accountService.addTag(account, tag);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(SETTINGS_TAGS_URL + "/remove")
+    @ResponseBody
+    public ResponseEntity<?> removeTag(@CurrentUser Account account, @RequestBody TagForm tagForm) {
+        String tagTitle = tagForm.getTagTitle();
+        Optional<Tag> tag = tagRepository.findByTitle(tagTitle);
+        if (tag.isEmpty())
+            return ResponseEntity.badRequest().build();
+
+        accountService.removeTag(account, tag.get());
         return ResponseEntity.ok().build();
     }
 }
