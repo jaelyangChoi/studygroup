@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -49,7 +50,7 @@ public class Account {
     /* 알림 */
     private boolean studyCreatedByEmail;
 
-    private boolean studyCreatedByWeb = true;
+    private boolean studyCreatedByWeb = true; //builder 사용하면 기본값 적용 안된다.
 
     private boolean studyEnrollmentResultByEmail;
 
@@ -62,7 +63,7 @@ public class Account {
     private LocalDateTime confirmEmailSendAt;
 
     @ManyToMany
-    private Set<Tag> tags;
+    private Set<Tag> tags = new HashSet<>();
 
     public void generateEmailCheckToken() {
         this.emailCheckToken = UUID.randomUUID().toString();

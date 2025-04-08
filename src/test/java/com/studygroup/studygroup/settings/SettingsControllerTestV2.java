@@ -40,7 +40,7 @@ class SettingsControllerTestV2 {
     @DisplayName("닉네임 수정 폼")
     @Test
     void updateAccountForm() throws Exception {
-        mockMvc.perform(get(SettingsController.SETTINGS__ACCOUNT_URL))
+        mockMvc.perform(get(SettingsController.SETTINGS_ACCOUNT_URL))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("account"))
                 .andExpect(model().attributeExists("nicknameForm"));
@@ -51,11 +51,11 @@ class SettingsControllerTestV2 {
     @Test
     void updateAccount_success() throws Exception {
         String newNickname = "cjl2076";
-        mockMvc.perform(post(SettingsController.SETTINGS__ACCOUNT_URL)
+        mockMvc.perform(post(SettingsController.SETTINGS_ACCOUNT_URL)
                         .param("nickname", newNickname)
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(SettingsController.SETTINGS__ACCOUNT_URL))
+                .andExpect(redirectedUrl(SettingsController.SETTINGS_ACCOUNT_URL))
                 .andExpect(flash().attributeExists("message"));
 
         assertNotNull(accountRepository.findByNickname(newNickname));
@@ -66,11 +66,11 @@ class SettingsControllerTestV2 {
     @Test
     void updateAccount_failure() throws Exception {
         String newNickname = "A!ADF@#DDSF";
-        mockMvc.perform(post(SettingsController.SETTINGS__ACCOUNT_URL)
+        mockMvc.perform(post(SettingsController.SETTINGS_ACCOUNT_URL)
                         .param("nickname", newNickname)
                         .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(view().name(SettingsController.SETTINGS__ACCOUNT_VIEW_NAME))
+                .andExpect(view().name(SettingsController.SETTINGS_ACCOUNT_VIEW_NAME))
                 .andExpect(model().hasErrors())
                 .andExpect(model().attributeExists("account"))
                 .andExpect(model().attributeExists("nicknameForm"));
