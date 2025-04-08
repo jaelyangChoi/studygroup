@@ -1,6 +1,7 @@
 package com.studygroup.studygroup.account;
 
 import com.studygroup.studygroup.domain.Account;
+import com.studygroup.studygroup.domain.Tag;
 import com.studygroup.studygroup.settings.form.Notifications;
 import com.studygroup.studygroup.settings.form.Profile;
 import jakarta.servlet.http.HttpSession;
@@ -24,6 +25,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -135,5 +137,10 @@ public class AccountService implements UserDetailsService {
         mailMessage.setSubject("스터디올래, 로그인 링크");
         mailMessage.setText("/login-by-email?token=" + account.getEmailCheckToken() + "&email=" + account.getEmail());
         javaMailSender.send(mailMessage);
+    }
+
+    public void addTag(Account account, Tag tag) {
+        Optional<Account> byId = accountRepository.findById(account.getId());
+        byId.ifPresent(ac -> ac.getTags().add(tag));
     }
 }
