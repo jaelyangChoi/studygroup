@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Optional;
+import java.util.Set;
 
 @Controller
 @RequiredArgsConstructor
@@ -133,15 +134,20 @@ public class SettingsController {
         return "redirect:" + SETTINGS_ACCOUNT_URL;
     }
 
+    /**
+     * Tag 등록 및 조회
+     */
     @GetMapping(SETTINGS_TAGS_URL)
     public String updateTags(@CurrentUser Account account, Model model) {
         model.addAttribute(account);
+        Set<Tag> tags = accountService.getTags(account);
+        model.addAttribute("tags", tags.stream().map(Tag::getTitle).toList());
         return SETTINGS_TAGS_VIEW_NAME;
     }
 
     @PostMapping(SETTINGS_TAGS_URL + "/add")
     @ResponseBody
-    public ResponseEntity addTag(@CurrentUser Account account, @RequestBody TagForm tagForm) {
+    public ResponseEntity<?> addTag(@CurrentUser Account account, @RequestBody TagForm tagForm) {
         String tagTitle = tagForm.getTagTitle();
         Tag tag = tagRepository.findByTitle(tagTitle).orElseGet(()->
                 tagRepository.save(Tag.builder().title(tagTitle).build()));
