@@ -1,5 +1,7 @@
 package com.studygroup.studygroup.settings;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studygroup.studygroup.account.AccountRepository;
 import com.studygroup.studygroup.account.AccountService;
 import com.studygroup.studygroup.account.CurrentUser;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.swing.text.html.Option;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -43,6 +46,7 @@ public class SettingsController {
     private final AccountRepository accountRepository;
     private final TagRepository tagRepository;
     private final ModelMapper modelMapper;
+    private final ObjectMapper objectMapper;
 
     @InitBinder("passwordForm")
     public void passwordFormInitBinder(WebDataBinder webDataBinder) {
@@ -139,10 +143,14 @@ public class SettingsController {
      * Tag 등록 및 조회
      */
     @GetMapping(SETTINGS_TAGS_URL)
-    public String updateTags(@CurrentUser Account account, Model model) {
+    public String updateTags(@CurrentUser Account account, Model model) throws JsonProcessingException {
         model.addAttribute(account);
         Set<Tag> tags = accountService.getTags(account);
         model.addAttribute("tags", tags.stream().map(Tag::getTitle).toList());
+
+        //태그 화이트 리스트
+        List<String> allTags = tagRepository.findAll().stream().map(Tag::getTitle).toList();
+        model.addAttribute("whitelist", objectMapper.writeValueAsString(allTags)); //JSON으로 변환해 모델에 담는다.
         return SETTINGS_TAGS_VIEW_NAME;
     }
 
