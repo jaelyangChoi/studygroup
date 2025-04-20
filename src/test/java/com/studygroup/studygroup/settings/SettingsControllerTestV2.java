@@ -6,9 +6,13 @@ import com.studygroup.studygroup.account.AccountRepository;
 import com.studygroup.studygroup.account.AccountService;
 import com.studygroup.studygroup.domain.Account;
 import com.studygroup.studygroup.domain.Tag;
+import com.studygroup.studygroup.domain.Zone;
 import com.studygroup.studygroup.settings.form.TagForm;
+import com.studygroup.studygroup.settings.form.ZoneForm;
 import com.studygroup.studygroup.tag.TagRepository;
+import com.studygroup.studygroup.zone.ZoneRepository;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +22,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 import static com.studygroup.studygroup.settings.SettingsController.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,10 +47,74 @@ class SettingsControllerTestV2 {
     TagRepository tagRepository;
     @Autowired
     AccountService accountService;
+    @Autowired
+    ZoneRepository zoneRepository;
+
+    private Zone testZone = Zone.builder().city("test").localNameOfCity("테스트시").province("테스트주").build();
+
+    @BeforeEach
+    void beforeEach() {
+        zoneRepository.save(testZone);
+    }
 
     @AfterEach
     void afterEach() {
-        accountRepository.deleteAll(); //@WithAccount에서 저장하므로 매번 지워줘야 한다.
+        accountRepository.deleteAll(); //@WithAccount 에서 저장하므로 매번 지워줘야 한다.
+        zoneRepository.deleteAll();
+    }
+
+    @WithAccount("cjl0701")
+    @DisplayName("계정의 지역 정보 수정 폼")
+    @Test
+    void updateZonesForm() throws Exception {
+        mockMvc.perform(get(ROOT + SETTINGS + ZONES))
+                .andExpect(status().isOk())
+                .andExpect(view().name(SETTINGS + ZONES))
+                .andExpect(model().attributeExists("account"))
+                .andExpect(model().attributeExists("whitelist"))
+                .andExpect(model().attributeExists("zones"));
+    }
+
+    @Transactional //lazy 로딩이 적용된다.
+    @WithAccount("cjl0701")
+    @DisplayName("계정의 지역 정보 추가")
+    @Test
+    void addZone() throws Exception {
+        ZoneForm zoneForm = new ZoneForm();
+        zoneForm.setZoneName(testZone.toString());
+
+        mockMvc.perform(post(ROOT + SETTINGS + ZONES + "/add")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(zoneForm))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        //then
+        Account account = accountRepository.findByNickname("cjl0701");
+        Zone zone = zoneRepository.findByCityAndProvince(testZone.getCity(), testZone.getProvince());
+        assertTrue(account.getZones().contains(zone));
+    }
+
+    @Transactional
+    @WithAccount("cjl0701")
+    @DisplayName("계정의 지역 정보 삭제")
+    @Test
+    void removeZone() throws Exception {
+        // given
+        Account account = accountRepository.findByNickname("cjl0701");
+        Zone zone = zoneRepository.findByCityAndProvince(testZone.getCity(), testZone.getProvince());
+        accountService.addZone(account, zone);
+
+        ZoneForm zoneForm = new ZoneForm();
+        zoneForm.setZoneName(testZone.toString());
+
+        mockMvc.perform(post(ROOT + SETTINGS + ZONES + "/remove")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(zoneForm))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        assertFalse(account.getZones().contains(zone)); //트랜잭션 유지
     }
 
     @WithAccount("cjl0701")

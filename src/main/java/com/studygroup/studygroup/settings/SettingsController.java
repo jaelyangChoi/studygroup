@@ -7,10 +7,12 @@ import com.studygroup.studygroup.account.AccountService;
 import com.studygroup.studygroup.account.CurrentUser;
 import com.studygroup.studygroup.domain.Account;
 import com.studygroup.studygroup.domain.Tag;
+import com.studygroup.studygroup.domain.Zone;
 import com.studygroup.studygroup.settings.form.*;
 import com.studygroup.studygroup.settings.validator.NicknameValidator;
 import com.studygroup.studygroup.settings.validator.PasswordFormValidator;
 import com.studygroup.studygroup.tag.TagRepository;
+import com.studygroup.studygroup.zone.ZoneRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -22,13 +24,9 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static com.studygroup.studygroup.settings.SettingsController.ROOT;
-import static com.studygroup.studygroup.settings.SettingsController.SETTINGS;
 
 @Controller
 @RequestMapping("/settings")
@@ -49,6 +47,7 @@ public class SettingsController {
     private final TagRepository tagRepository;
     private final ModelMapper modelMapper;
     private final ObjectMapper objectMapper;
+    private final ZoneRepository zoneRepository;
 
     @InitBinder("passwordForm")
     public void passwordFormInitBinder(WebDataBinder webDataBinder) {
@@ -160,7 +159,7 @@ public class SettingsController {
     @ResponseBody
     public ResponseEntity<?> addTag(@CurrentUser Account account, @RequestBody TagForm tagForm) {
         String tagTitle = tagForm.getTagTitle();
-        Tag tag = tagRepository.findByTitle(tagTitle).orElseGet(()->
+        Tag tag = tagRepository.findByTitle(tagTitle).orElseGet(() ->
                 tagRepository.save(Tag.builder().title(tagTitle).build()));
 
         accountService.addTag(account, tag);
@@ -178,4 +177,43 @@ public class SettingsController {
         accountService.removeTag(account, tag.get());
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * 활동 지역 정보
+     */
+    @GetMapping(ZONES)
+    public String updateZonesForm(@CurrentUser Account account, Model model) throws JsonProcessingException {
+        model.addAttribute(account);
+
+        Set<Zone> zones = accountService.getZones(account);
+        model.addAttribute("zones", zones.stream().map(Zone::toString).toList());
+
+        List<String> allZones = zoneRepository.findAll().stream().map(Zone::toString).toList();
+        model.addAttribute("whitelist", objectMapper.writeValueAsString(allZones));
+
+        return SETTINGS + ZONES;
+    }
+
+    @PostMapping(ZONES + "/add")
+    @ResponseBody
+    public ResponseEntity<?> addZone(@CurrentUser Account account, @RequestBody ZoneForm zoneForm) {
+        Zone zone = zoneRepository.findByCityAndProvince(zoneForm.getCityName(), zoneForm.getProvinceName());
+        if (zone == null)
+            return ResponseEntity.badRequest().build();
+
+        accountService.addZone(account, zone);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(ZONES + "/remove")
+    @ResponseBody
+    public ResponseEntity<?> removeZone(@CurrentUser Account account, @RequestBody ZoneForm zoneForm) {
+        Zone zone = zoneRepository.findByCityAndProvince(zoneForm.getCityName(), zoneForm.getProvinceName());
+        if (zone == null)
+            return ResponseEntity.badRequest().build();
+
+        accountService.removeZone(account, zone);
+        return ResponseEntity.ok().build();
+    }
+
 }

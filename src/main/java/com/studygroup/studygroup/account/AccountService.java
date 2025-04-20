@@ -2,6 +2,7 @@ package com.studygroup.studygroup.account;
 
 import com.studygroup.studygroup.domain.Account;
 import com.studygroup.studygroup.domain.Tag;
+import com.studygroup.studygroup.domain.Zone;
 import com.studygroup.studygroup.settings.form.Notifications;
 import com.studygroup.studygroup.settings.form.Profile;
 import jakarta.servlet.http.HttpSession;
@@ -148,4 +149,15 @@ public class AccountService implements UserDetailsService {
         return byId.orElseThrow().getTags();
     }
 
+    public Set<Zone> getZones(Account account) {
+        return accountRepository.findById(account.getId()).orElseThrow().getZones();
+    }
+
+    public void addZone(Account account, Zone zone) {
+        accountRepository.findById(account.getId()).ifPresent(ac -> ac.getZones().add(zone));
+    }
+
+    public void removeZone(Account account, Zone zone) {
+        accountRepository.findById(account.getId()).ifPresent(ac -> ac.getZones().remove(zone));
+    }
 }
